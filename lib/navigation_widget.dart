@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'google_map_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'signin.dart';
 
 class NavigationWidget extends StatefulWidget {
   final String userId;
@@ -21,7 +22,10 @@ class _NavigationWidgetState extends State<NavigationWidget> {
   try {
     await FirebaseAuth.instance.signOut();
     // Navigate back to SignInPage
-    Navigator.pop(context);
+    //Navigator.pop(context);
+    Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const SignInPage()),
+                            );
   } catch (e) {
     print('Failed to sign out: $e');
   }

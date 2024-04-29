@@ -18,6 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signUpWithEmailAndPassword() async {
+    FocusScope.of(context).unfocus();
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -30,7 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
@@ -42,14 +43,14 @@ class _SignUpPageState extends State<SignUpPage> {
                   border: Border.all(),
                   borderRadius: BorderRadius.circular(20),
                 ),
-            height: MediaQuery.of(context).size.height * 0.4,
+            height: MediaQuery.of(context).size.height * 0.41,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.7,
-                  height: MediaQuery.of(context).size.height * 0.35,
+                  height: MediaQuery.of(context).size.height * 0.37,
                   child: Column(
                     children: [
                       TextField(
