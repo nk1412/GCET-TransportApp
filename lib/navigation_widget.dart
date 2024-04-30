@@ -1,7 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'google_map_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'signin.dart';
@@ -16,16 +15,16 @@ class NavigationWidget extends StatefulWidget {
 
 class _NavigationWidgetState extends State<NavigationWidget> {
   String _selectedItem = '1';
-  final List<String> _items = ['1', '2', '3'];
+  final List<String> _items = ['1','Bus27', 'Bus31'];
 
   Future<void> _signOut() async {
   try {
     await FirebaseAuth.instance.signOut();
     // Navigate back to SignInPage
     //Navigator.pop(context);
-    Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const SignInPage()),
-                            );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
   } catch (e) {
     print('Failed to sign out: $e');
   }
@@ -34,7 +33,73 @@ class _NavigationWidgetState extends State<NavigationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaterialApp(
+      home: Scaffold(
+      appBar: AppBar(
+          leading: Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer(); // Open the drawer
+                },
+              );
+            },
+          ),
+        ),
+      drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.menu,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Menu',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.home),
+                title: Text('Home'),
+                onTap: () {
+                  // Handle drawer item tap for Home
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.settings),
+                title: Text('Settings'),
+                onTap: () {
+                  // Handle drawer item tap for Settings
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              Divider(), // Add a divider between menu items
+              ListTile(
+                leading: Icon(Icons.exit_to_app),
+                title: Text('Logout'),
+                onTap: () {
+                  _signOut();
+                },
+              ),
+            ],
+          ),
+        ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -57,32 +122,16 @@ class _NavigationWidgetState extends State<NavigationWidget> {
             ElevatedButton(
               onPressed: () async {
                 // Request location permission before accessing location data
-                final permissionStatus = await Permission.locationWhenInUse.request();
-                if (permissionStatus.isGranted) {
-                  Navigator.of(context).push(
+                Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => GoogleMapWidget(selectedItem: _selectedItem)),
                   );
-                } else if (permissionStatus.isDenied) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Location permission denied. Please enable it from settings.'),
-                      duration: Duration(seconds: 5),
-                    ),
-                  );
-                } else if (permissionStatus.isPermanentlyDenied) {
-                  openAppSettings(); // Function to open app settings
-                }
               },
               child: const Text('Get Selected Item'),
             ),
-            ElevatedButton(
-  onPressed: _signOut,
-  child: Text('Logout'),
-),
 
           ],
         ),
       ),
-    );
+    ),);
   }
 }

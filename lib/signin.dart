@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'navigation_widget.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'signup.dart';
 
 class SignInPage extends StatefulWidget {
@@ -19,10 +20,12 @@ class _SignInPageState extends State<SignInPage> {
   String? _eerrorMessage;
   String? _perrorMessage;
   bool _errorOccurred = false;
+  bool _obscurePassword = true;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
+    _askLocPermission();
     // Check if the user is already signed in
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
@@ -33,6 +36,19 @@ class _SignInPageState extends State<SignInPage> {
         );
       }
     });
+  }
+  Future<void> _askLocPermission() async{
+    final permissionStatus = await Permission.locationWhenInUse.request();
+                if (permissionStatus.isDenied) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Location permission denied. Please enable it from settings.'),
+                      duration: Duration(seconds: 5),
+                    ),
+                  );
+                } else if (permissionStatus.isPermanentlyDenied) {
+                  openAppSettings(); // Function to open app settings
+                }
   }
 
   Future<void> signup() async {
@@ -82,6 +98,42 @@ class _SignInPageState extends State<SignInPage> {
             _errorOccurred = true;
           });
         }
+        if (e.code == "network-request-failed") {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                contentPadding: EdgeInsets.zero, // Remove default padding
+                content: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.5, // Set width
+                  height: MediaQuery.of(context).size.height * 0.25, // Set height
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text("Error", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                      // Add a divider for separation
+                      const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text("Please check your internet connection and try again later.",),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(), // Add some spacing
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("OK", style: TextStyle(fontSize: 16),),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
       }
       print('Failed to sign up: $e');
     }
@@ -89,7 +141,7 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.4 : MediaQuery.of(context).size.height * 0.41;
+    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.385 : MediaQuery.of(context).size.height * 0.355;
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromARGB(255, 27, 35, 114),
@@ -100,7 +152,7 @@ class _SignInPageState extends State<SignInPage> {
                   border: Border.all(),
                   borderRadius: BorderRadius.circular(20),
                 ),
-            height: containerHeight,
+            height: MediaQuery.of(context).size.height * 0.41,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Center(
               child: Column(
@@ -108,7 +160,7 @@ class _SignInPageState extends State<SignInPage> {
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.7,
-                    height: MediaQuery.of(context).size.height * 0.37,
+                    height: containerHeight,
                     child: Column(
                       children: [
                         TextFormField(
@@ -129,6 +181,15 @@ class _SignInPageState extends State<SignInPage> {
                           controller: _passwordController,
                           decoration: InputDecoration(
                             labelText: 'Password',
+                            suffixIcon: IconButton(
+                              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                              iconSize: 24,
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword; // Toggle the password visibility
+                                });
+                              },
+                            ),
                             errorText: _perrorMessage,
                             focusedBorder: UnderlineInputBorder(
                               borderSide: BorderSide(color: _perrorMessage != null ? Colors.red : Colors.blue),
@@ -137,7 +198,7 @@ class _SignInPageState extends State<SignInPage> {
                               borderSide: BorderSide(color: _perrorMessage != null ? Colors.red : Colors.grey),
                             ),
                           ),
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                         ),
                         const SizedBox(height: 16.0),
                         ElevatedButton(
@@ -146,11 +207,9 @@ class _SignInPageState extends State<SignInPage> {
                         ),
                         const SizedBox(height: 16.0),
                         const Text("Don't have an account?"),
-                        const SizedBox(height: 6.0),
-                        InkWell(
-                          onTap: (){
+                        TextButton(
+                          onPressed: () {
                             signup();
-
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) => const SignUpPage()),
                             );
