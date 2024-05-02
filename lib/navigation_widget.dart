@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'google_map_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,8 +15,13 @@ class NavigationWidget extends StatefulWidget {
 }
 
 class _NavigationWidgetState extends State<NavigationWidget> {
-  String _selectedItem = '1';
-  final List<String> _items = ['1','Bus27', 'Bus31'];
+
+  final String _studentEmail = FirebaseAuth.instance.currentUser!.email!;
+  @override
+  void initState() {
+  super.initState();
+  checkAndCreateDocument();
+}
 
   Future<void> _signOut() async {
   try {
@@ -30,108 +36,39 @@ class _NavigationWidgetState extends State<NavigationWidget> {
   }
 }
 
+Future<void> checkAndCreateDocument() async {
+  try {
+    // Get a reference to the Firestore instance
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    // Reference the specific document using its ID
+    DocumentReference documentRef = firestore.collection('year21').doc(_studentEmail);
+
+    // Get the document snapshot
+    DocumentSnapshot documentSnapshot = await documentRef.get();
+
+    // Check if the document exists
+    if (!documentSnapshot.exists) {
+      Map<String, dynamic> data = {
+        'Name': '',
+        'Bus Number': '',
+        // Add more fields as needed
+      };
+      // If the document doesn't exist, add the document with the specified data
+      await documentRef.set(data);
+      print('Document added successfully.');
+    } else {
+      print('Document already exists.');
+    }
+  } catch (e) {
+    // Handle any errors
+    print('Error checking or creating document: $e');
+  }
+}
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-      appBar: AppBar(
-          leading: Builder(
-            builder: (BuildContext context) {
-              return IconButton(
-                icon: Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer(); // Open the drawer
-                },
-              );
-            },
-          ),
-        ),
-      drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.menu,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Menu',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
-                onTap: () {
-                  // Handle drawer item tap for Home
-                  Navigator.pop(context); // Close the drawer
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () {
-                  // Handle drawer item tap for Settings
-                  Navigator.pop(context); // Close the drawer
-                },
-              ),
-              Divider(), // Add a divider between menu items
-              ListTile(
-                leading: Icon(Icons.exit_to_app),
-                title: Text('Logout'),
-                onTap: () {
-                  _signOut();
-                },
-              ),
-            ],
-          ),
-        ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            DropdownButton<String>(
-              value: _selectedItem,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedItem = newValue!;
-                });
-              },
-              items: _items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                // Request location permission before accessing location data
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => GoogleMapWidget(selectedItem: _selectedItem)),
-                  );
-              },
-              child: const Text('Get Selected Item'),
-            ),
-
-          ],
-        ),
-      ),
-    ),);
+    return const MaterialApp(
+      home: GoogleMapWidget(),
+    );
   }
 }

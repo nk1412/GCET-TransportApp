@@ -2,14 +2,18 @@
 
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'signin.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
-class GoogleMapWidget extends StatefulWidget {
-  final String selectedItem;
+import 'profile.dart';
 
-  const GoogleMapWidget({super.key, required this.selectedItem});
+class GoogleMapWidget extends StatefulWidget {
+  const GoogleMapWidget({super.key});
+
 
   @override
   _GoogleMapWidgetState createState() => _GoogleMapWidgetState();
@@ -19,16 +23,46 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   late GoogleMapController _controller;
   late Set<Marker> _markers;
   LatLng _currentPosition = const LatLng(0, 0);
+  String _busNumber = '';
+  final String _studentEmail = FirebaseAuth.instance.currentUser!.email!; // Fetch user's email
 
   @override
   void initState() {
     super.initState();
+    _getUserData();
     _markers = {};
     _getLocation();
-//    _requestLocationPermission();
     _positionload();
     _startLocationUpdates();
-    _addMarkers();
+  }
+
+  Future<void> _signOut() async {
+  try {
+    await FirebaseAuth.instance.signOut();
+    // Navigate back to SignInPage
+    //Navigator.pop(context);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
+  } catch (e) {
+    print('Failed to sign out: $e');
+  }
+}
+
+
+  Future<void> _getUserData() async {
+    try {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('year21').doc(_studentEmail).get();
+    if (snapshot.exists) {
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      setState(() {
+        _busNumber = data['Bus Number'];
+        _addMarkers();
+      });
+    }
+  } catch (e) {
+    print('Error fetching user data: $e');
+  }
   }
 
   void _startLocationUpdates() {
@@ -38,7 +72,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void _positionload() {
-    Timer.periodic(const Duration(seconds: 3), (timer) {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
       _getLocation();
       _controller.animateCamera(CameraUpdate.newLatLngZoom(_currentPosition, 18));
       timer.cancel();
@@ -64,33 +98,9 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void _addMarkers() async{
-    // var route = {
-    //   '1': [
-    //     [17.496171726822396, 78.5851329343433],
-    //     [17.500952221016316, 78.58550528758049],
-    //   ],
-    //   '2': [
-    //     [17.501470474299282, 78.58992277952596],
-    //     [17.50039198796902, 78.5916332849724],
-    //   ],
-    //   '3': [
-    //     [17.499361458495326, 78.59314513740827],
-    //     [17.49768039194528, 78.59461647005656],
-    //   ],
-    // };
-
-    // var marker = route[widget.selectedItem];
-    // for (var i = 0; i < marker!.length; i++) {
-    //   _markers.add(
-    //     Marker(
-    //       markerId: MarkerId('marker${i + 1}'),
-    //       position: LatLng(marker[i][0], marker[i][1]),
-    //     ),
-    //   );
-    // }
     try {
     // Reference to your Firestore collection
-      DocumentReference documentRef = FirebaseFirestore.instance.collection('Route').doc(widget.selectedItem);
+      DocumentReference documentRef = FirebaseFirestore.instance.collection('Route').doc(_busNumber);
       DocumentSnapshot snapshot = await documentRef.get();
 
       if (snapshot.exists) {
@@ -122,10 +132,92 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+      statusBarIconBrightness: Brightness.dark, // Use dark icons for status bar
+      statusBarColor: Colors.black, // Make status bar transparent
+    ));
+    return MaterialApp(
+      home: Scaffold(
+        extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Google Maps Example'),
+        title: const Text("Bus Location"),
+        backgroundColor: Colors.transparent, // Make app bar background transparent
+          elevation: 0,
+          leading: Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer(); // Open the drawer
+                },
+              );
+            },
+          ),
+        ),
+      drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.menu,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Menu',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.home),
+                title: const Text('Home'),
+                onTap: () {
+                  // Handle drawer item tap for Home
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Settings'),
+                onTap: () {
+                  // Handle drawer item tap for Settings
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              ListTile(
+        leading: const Icon(Icons.person),
+        title: const Text('Profile'),
+        onTap: () {
+          // Handle drawer item tap for Profile
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfilePage()),
+          );
+        },
       ),
+              const Divider(), // Add a divider between menu items
+              ListTile(
+                leading: const Icon(Icons.exit_to_app),
+                title: const Text('Logout'),
+                onTap: () {
+                  _signOut();
+                },
+              ),
+            ],
+          ),
+        ),
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
           target: _currentPosition,
@@ -140,12 +232,19 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _getLocation();
-          _controller.animateCamera(CameraUpdate.newLatLngZoom(_currentPosition, 18));
-          
+          //_controller.animateCamera(CameraUpdate.newLatLngZoom(_currentPosition, 18));
+          _controller.animateCamera(CameraUpdate.newCameraPosition(
+              CameraPosition(
+                target: _currentPosition,
+                zoom: 18,
+                bearing: 0, // Set bearing to 0 for north orientation
+              ),
+            ));
+          _getUserData();
         },
         child: const Icon(Icons.location_on),
       ),
-    );
+    ),);
   }
 }
   
