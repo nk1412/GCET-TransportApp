@@ -141,7 +141,7 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.385 : MediaQuery.of(context).size.height * 0.355;
+    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.445 : MediaQuery.of(context).size.height * 0.42;
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromARGB(255, 27, 35, 114),
@@ -152,7 +152,7 @@ class _SignInPageState extends State<SignInPage> {
                   border: Border.all(),
                   borderRadius: BorderRadius.circular(20),
                 ),
-            height: MediaQuery.of(context).size.height * 0.41,
+            height: MediaQuery.of(context).size.height * 0.45,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Center(
               child: Column(
@@ -215,6 +215,16 @@ class _SignInPageState extends State<SignInPage> {
                             );
                           },
                           child: const Text('Sign Up',style: TextStyle(color: Colors.blue),),
+                        ),
+                        //const SizedBox(height: 10,),
+                        TextButton(
+                          onPressed: () {
+                            signup();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const SignUpPage()),
+                            );
+                          },
+                          child: const Text('Driver Login',style: TextStyle(color: Color.fromARGB(255, 33, 86, 5)),),
                         ),
                       ],
                     ),

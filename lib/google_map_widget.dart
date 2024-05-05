@@ -22,9 +22,10 @@ class GoogleMapWidget extends StatefulWidget {
 class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   late GoogleMapController _controller;
   late Set<Marker> _markers;
-  LatLng _currentPosition = const LatLng(0, 0);
+  late LatLng _currentPosition;
   String _busNumber = '';
-  final String _studentEmail = FirebaseAuth.instance.currentUser!.email!; // Fetch user's email
+  final String _studentEmail = FirebaseAuth.instance.currentUser!.email!;
+  late List points;
 
   @override
   void initState() {
@@ -34,13 +35,12 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
     _getLocation();
     _positionload();
     _startLocationUpdates();
+    print('hello');
   }
 
   Future<void> _signOut() async {
   try {
     await FirebaseAuth.instance.signOut();
-    // Navigate back to SignInPage
-    //Navigator.pop(context);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const SignInPage()),
     );
@@ -66,7 +66,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void _startLocationUpdates() {
-    Timer.periodic(const Duration(seconds: 10), (timer) {
+    Timer.periodic(const Duration(seconds: 3), (timer) {
       _getLocation();
     });
   }
@@ -81,17 +81,51 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
 
   void _getLocation() async {
     try {
-      var position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _markers.remove(const Marker(markerId: MarkerId('currentPosition')));
-        _currentPosition = LatLng(position.latitude, position.longitude);
-        _markers.add(
-          Marker(
-            markerId: const MarkerId('currentPosition'),
-            position: _currentPosition,
-          ),
-        );
+      DocumentReference documentRef = FirebaseFirestore.instance.collection('Route').doc(_busNumber);
+      DocumentSnapshot snapshot = await documentRef.get();
+
+      if (snapshot.exists) {
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+        List<String> keys = data.keys.toList();
+
+        for (var i = 0; i < keys.length; i++) {
+          GeoPoint? geoPoint = data[keys[i]] as GeoPoint?;
+          if(geoPoint != null && keys[i] == 'location'){
+            double latitude = geoPoint.latitude;
+            double longitude = geoPoint.longitude;
+            setState(() {
+        _currentPosition = LatLng(geoPoint.latitude, geoPoint.longitude);
       });
+            _markers.add(
+              Marker(
+                markerId: MarkerId(keys[i]),
+                position: LatLng(latitude,longitude),
+              ),
+            );          
+          }
+        }
+      }
+
+      var position = await Geolocator.getCurrentPosition();
+      await documentRef.set({
+      'location': GeoPoint(position.latitude,position.longitude),
+    }, SetOptions(merge: true));
+    // var position = await Geolocator.getCurrentPosition();
+    //   await documentRef.set({
+    //   'location': GeoPoint(position.latitude,position.longitude),
+    // }, SetOptions(merge: true));
+    // setState(() {
+    //     _markers.remove(const Marker(markerId: MarkerId('currentPosition')));
+    //     _currentPosition = LatLng(position.latitude, position.longitude);
+    //     _markers.add(
+    //       Marker(
+    //         markerId: const MarkerId('currentPosition'),
+    //         position: _currentPosition,
+    //       ),
+    //     );
+    //   });
+    
     // ignore: empty_catches
     } catch (e) {
     }
@@ -107,20 +141,20 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
 
         List<String> keys = data.keys.toList();
-      
+        print(keys);
         for (var i = 0; i < keys.length; i++) {
           GeoPoint? geoPoint = data[keys[i]] as GeoPoint?;
-          if(geoPoint != null){
-          double latitude = geoPoint.latitude;
-          double longitude = geoPoint.longitude;
-          _markers.add(
-        Marker(
-          markerId: MarkerId('marker${i + 1}'),
-          position: LatLng(latitude,longitude),
-        ),
-      );
-          print('Latitude: $latitude, Longitude: $longitude');
-        }
+          if(geoPoint != null && keys[i] != 'location'){
+            double latitude = geoPoint.latitude;
+            double longitude = geoPoint.longitude;
+            points[i] = LatLng(latitude, longitude);
+            _markers.add(
+              Marker(
+                markerId: MarkerId(keys[i]),
+                position: LatLng(latitude,longitude),
+              ),
+            );          
+          }
         }
       } else {
         print('Document does not exist');
@@ -240,10 +274,11 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
                 bearing: 0, // Set bearing to 0 for north orientation
               ),
             ));
-          _getUserData();
+          //_getUserData();
         },
         child: const Icon(Icons.location_on),
       ),
+      
     ),);
   }
 }
