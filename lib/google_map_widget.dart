@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously, avoid_print
 
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'signin.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'stop_find.dart';
 import 'profile.dart';
 
 class GoogleMapWidget extends StatefulWidget {
@@ -22,10 +22,12 @@ class GoogleMapWidget extends StatefulWidget {
 class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   late GoogleMapController _controller;
   late Set<Marker> _markers;
-  late LatLng _currentPosition;
+  LatLng _currentPosition = const LatLng(0,0);
   String _busNumber = '';
   final String _studentEmail = FirebaseAuth.instance.currentUser!.email!;
-  late List points;
+  late double latitudeput;
+  late LatLng locationput;
+  late double longitudeput;
 
   @override
   void initState() {
@@ -94,9 +96,13 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
           if(geoPoint != null && keys[i] == 'location'){
             double latitude = geoPoint.latitude;
             double longitude = geoPoint.longitude;
+            locationput = LatLng(geoPoint.latitude,geoPoint.longitude);
+            latitudeput = geoPoint.latitude;
+            longitudeput = geoPoint.longitude;
+            
             setState(() {
-        _currentPosition = LatLng(geoPoint.latitude, geoPoint.longitude);
-      });
+              _currentPosition = LatLng(geoPoint.latitude, geoPoint.longitude);
+            });
             _markers.add(
               Marker(
                 markerId: MarkerId(keys[i]),
@@ -145,9 +151,9 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
         for (var i = 0; i < keys.length; i++) {
           GeoPoint? geoPoint = data[keys[i]] as GeoPoint?;
           if(geoPoint != null && keys[i] != 'location'){
+            print(geoPoint.latitude);
             double latitude = geoPoint.latitude;
             double longitude = geoPoint.longitude;
-            points[i] = LatLng(latitude, longitude);
             _markers.add(
               Marker(
                 markerId: MarkerId(keys[i]),
@@ -231,16 +237,27 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
                 },
               ),
               ListTile(
-        leading: const Icon(Icons.person),
-        title: const Text('Profile'),
-        onTap: () {
-          // Handle drawer item tap for Profile
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfilePage()),
-          );
-        },
-      ),
+                leading: const Icon(Icons.person),
+                title: const Text('Profile'),
+                onTap: () {
+                  // Handle drawer item tap for Profile
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProfilePage()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.location_on),
+                title: const Text('Find Your Stop'),
+                onTap: () {
+                  // Handle drawer item tap for Profile
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StopFind(userLocation: locationput,description: "Your current location",)),
+                  );
+                },
+              ),
               const Divider(), // Add a divider between menu items
               ListTile(
                 leading: const Icon(Icons.exit_to_app),
@@ -252,16 +269,28 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
             ],
           ),
         ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: _currentPosition,
-          zoom: 15.0,
-        ),
-        markers: _markers,
-        onMapCreated: (GoogleMapController controller) {
-          _controller = controller;
-        },
-        zoomControlsEnabled: false,
+      body: Stack(
+        children: [
+          if (_currentPosition != const LatLng(0,0))
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _currentPosition,
+                zoom: 15.0,
+              ),
+              markers: _markers,
+              //circles: _circles,
+              onMapCreated: (GoogleMapController controller) {
+                setState(() {
+                  _controller = controller;
+                });
+              },
+              zoomControlsEnabled: false,
+            )
+          else
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -278,6 +307,17 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
         },
         child: const Icon(Icons.location_on),
       ),
+      // GoogleMap(
+      //   initialCameraPosition: CameraPosition(
+      //     target: _currentPosition,
+      //     zoom: 15.0,
+      //   ),
+      //   markers: _markers,
+      //   onMapCreated: (GoogleMapController controller) {
+      //     _controller = controller;
+      //   },
+      //   zoomControlsEnabled: false,
+      // ),
       
     ),);
   }

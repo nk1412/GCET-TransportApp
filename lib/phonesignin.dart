@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -5,8 +7,10 @@ class PhoneSignInPage extends StatelessWidget {
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _smsCodeController = TextEditingController();
 
+  PhoneSignInPage({super.key});
+
   Future<void> _verifyPhoneNumber(BuildContext context) async {
-    String phoneNumber = '+91' + _phoneNumberController.text; // Get the entered phone number
+    String phoneNumber = '+91${_phoneNumberController.text}'; // Get the entered phone number
     FirebaseAuth auth = FirebaseAuth.instance;
 
     await auth.verifyPhoneNumber(
@@ -29,7 +33,7 @@ class PhoneSignInPage extends StatelessWidget {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Enter SMS Code"),
+              title: const Text("Enter SMS Code"),
               content: TextField(controller: _smsCodeController),
               actions: [
                 TextButton(
@@ -39,7 +43,7 @@ class PhoneSignInPage extends StatelessWidget {
                     await auth.signInWithCredential(credential);
                     // Navigate to the next screen
                   },
-                  child: Text("Verify"),
+                  child: const Text("Verify"),
                 ),
               ],
             );
@@ -56,18 +60,18 @@ class PhoneSignInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Phone Sign In")),
+      appBar: AppBar(title: const Text("Phone Sign In")),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextField(controller: _phoneNumberController, decoration: InputDecoration(labelText: "Phone Number")),
-              SizedBox(height: 16),
+              TextField(controller: _phoneNumberController, decoration: const InputDecoration(labelText: "Phone Number")),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => _verifyPhoneNumber(context),
-                child: Text("Send Verification Code"),
+                child: const Text("Send Verification Code"),
               ),
             ],
           ),

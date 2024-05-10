@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     }
   } catch (e) {
-    print('Error fetching user data: $e');
+    throw Exception('Error fetching user data: $e');
   }
   }
 
@@ -54,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _updateProfile() async {
     Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NewProfilePage()),
+            MaterialPageRoute(builder: (context) => const NewProfilePage()),
           );
   }
 

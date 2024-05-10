@@ -35,6 +35,7 @@ class _SignUpPageState extends State<SignUpPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
+      // ignore: avoid_print
       print('User signed up: ${userCredential.user!.uid}');
       Navigator.pop(context);
     } catch (e) {
@@ -96,7 +97,7 @@ class _SignUpPageState extends State<SignUpPage> {
           );
         }
       }
-      print('Failed to sign up: $e');
+      throw Exception('Failed to sign up: $e');
     }
   }
 

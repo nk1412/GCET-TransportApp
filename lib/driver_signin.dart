@@ -6,18 +6,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'navigation_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'signup.dart';
-import 'driver_signin.dart';
+import 'signin.dart';
 import 'stop_find.dart';
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
+class DriverSignInPage extends StatefulWidget {
+  const DriverSignInPage({super.key});
 
   @override
-  _SignInPageState createState() => _SignInPageState();
+  _DriverSignInPageState createState() => _DriverSignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _DriverSignInPageState extends State<DriverSignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _eerrorMessage;
@@ -32,19 +31,11 @@ class _SignInPageState extends State<SignInPage> {
     // Check if the user is already signed in
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
-        if ( user.email!.contains('test2') ){
-          Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const StopFind(userLocation: LatLng(0,0),description: "Your current location",)),
-        );
-        }
-        else{
-          // User is already signed in, navigate to home
+        // User is already signed in, navigate to home
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => NavigationWidget(userId: user.email!)),
         );
-        }
       }
     });
   }
@@ -87,7 +78,7 @@ class _SignInPageState extends State<SignInPage> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => NavigationWidget(userId: _emailController.text)), // Navigate to the home page
+        MaterialPageRoute(builder: (context) => const StopFind(userLocation: LatLng(0, 0),description: 'none',)), // Navigate to the home page
       );
     } catch (e) {
       if (e is FirebaseAuthException) {
@@ -146,23 +137,42 @@ class _SignInPageState extends State<SignInPage> {
           );
         }
       }
+      throw Exception('Failed to sign up: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.45 : MediaQuery.of(context).size.height * 0.42;
+    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.445 : MediaQuery.of(context).size.height * 0.42;
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromARGB(255, 27, 35, 114),
-        body: Center(
+        body: Stack(
+          //mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Positioned(
+            top: 16.0,
+            left: 16.0,
+            width: 40,
+            height: 40,
+            child: FloatingActionButton(
+              backgroundColor: Colors.white,
+              shape: const CircleBorder(),
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (context) => const SignInPage()),
+                            );
+              },
+              child: const Icon(Icons.arrow_back),
+            ),),
+          Center(
           child:Container( 
             decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(),
                   borderRadius: BorderRadius.circular(20),
                 ),
-            height: MediaQuery.of(context).size.height * 0.46,
+            height: MediaQuery.of(context).size.height * 0.45,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Center(
               child: Column(
@@ -171,7 +181,9 @@ class _SignInPageState extends State<SignInPage> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.7,
                     height: containerHeight,
-                    child: Column(
+                    child: Center(
+                      child:  Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextFormField(
                           controller: _emailController,
@@ -216,37 +228,17 @@ class _SignInPageState extends State<SignInPage> {
                           child: const Text('Sign In'),
                         ),
                         const SizedBox(height: 16.0),
-                        const Text("Don't have an account?",style: TextStyle(fontSize: 16),),
-                        TextButton(
-                          
-                          onPressed: () {
-                            signup();
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const SignUpPage()),
-                            );
-                          },
-                          child: const Text('Sign Up',style: TextStyle(color: Colors.blue),),
-                        ),
-                        //const SizedBox(height: 10,),
-                        TextButton(
-                          onPressed: () {
-                            signup();
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const DriverSignInPage()),
-                            );
-                          },
-                          child: const Text('Driver Login',style: TextStyle(color: Color.fromARGB(255, 33, 86, 5)),),
-                        ),
                       ],
                     ),
-                  ),
+                  ),)
+                  
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
+      ]),
+    ),);
   }
 }
 

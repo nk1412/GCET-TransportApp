@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> getLocationData() async {
@@ -9,7 +11,7 @@ Future<void> getLocationData() async {
     QuerySnapshot querySnapshot = await locations.get();
 
     // Iterate over each document in the query result
-    querySnapshot.docs.forEach((DocumentSnapshot document) {
+    for (var document in querySnapshot.docs) {
       // Access the data within each document
       Map<String, dynamic>? data = document.data() as Map<String, dynamic>?; // Add cast here
       if (data != null) {
@@ -22,7 +24,7 @@ Future<void> getLocationData() async {
           print('Latitude: $latitude, Longitude: $longitude');
         }
       }
-    });
+    }
   } catch (e) {
     print('Error retrieving location data: $e');
   }
