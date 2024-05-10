@@ -54,6 +54,7 @@ dependencies:
   google_places_flutter: ^2.0.8
   uuid: ^4.4.0
   geocoding: ^3.0.0
+  js: ^0.6.7
   
 
 dev_dependencies:
