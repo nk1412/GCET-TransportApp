@@ -4,14 +4,12 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-// import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 //import 'dart:math' show cos, sqrt, sin, atan2, pi;
 import 'package:http/http.dart' as http;
 import 'search_loc.dart';
 
 class StopFind extends StatefulWidget {
-  //const MapScreen({super.key, required LatLng userLocation});
   final LatLng userLocation;
   final String description;
 
@@ -24,8 +22,7 @@ class StopFind extends StatefulWidget {
 class _StopFindState extends State<StopFind> {
   late GoogleMapController mapController;
   Set<Marker> allMarkers = <Marker>{};
-  Set<Marker> visibleMarkers = <Marker>{};
-  //String _busNumber = '31';
+  Set<Marker> visibleMarkers = <Marker>{};  
 
   @override
   void initState() {
@@ -133,7 +130,7 @@ class _StopFindState extends State<StopFind> {
           GoogleMap(
             initialCameraPosition: CameraPosition(
               target: widget.userLocation,
-              zoom: 15.0,
+              zoom: 16.0,
             ),
             markers: visibleMarkers,
             onMapCreated: (GoogleMapController controller) {
@@ -190,6 +187,9 @@ class _StopFindState extends State<StopFind> {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) =>  SearchLoc(desc: widget.description, location: widget.userLocation,),),
                       );
+                      // Navigator.of(context).pushReplacement(
+                      //   MaterialPageRoute(builder: (context) =>  SelectOnMap( location: widget.userLocation,),),
+                      // );
                     },
                     child: Container(
                       height: 40,

@@ -50,16 +50,16 @@ class _SignInPageState extends State<SignInPage> {
   }
   Future<void> _askLocPermission() async{
     final permissionStatus = await Permission.locationWhenInUse.request();
-                if (permissionStatus.isDenied) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Location permission denied. Please enable it from settings.'),
-                      duration: Duration(seconds: 5),
-                    ),
-                  );
-                } else if (permissionStatus.isPermanentlyDenied) {
-                  openAppSettings(); // Function to open app settings
-                }
+    if (permissionStatus.isDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location permission denied. Please enable it from settings.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } else if (permissionStatus.isPermanentlyDenied) {
+      openAppSettings(); // Function to open app settings
+    }
   }
 
   Future<void> signup() async {
@@ -151,10 +151,11 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.45 : MediaQuery.of(context).size.height * 0.42;
+    double containerHeight = _errorOccurred ? MediaQuery.of(context).size.height * 0.4 : MediaQuery.of(context).size.height * 0.445;
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 27, 35, 114),
+        // backgroundColor: Color.fromARGB(255, 195, 182, 39),
+        backgroundColor: Colors.yellow,
         body: Center(
           child:Container( 
             decoration: BoxDecoration(
@@ -162,7 +163,7 @@ class _SignInPageState extends State<SignInPage> {
                   border: Border.all(),
                   borderRadius: BorderRadius.circular(20),
                 ),
-            height: MediaQuery.of(context).size.height * 0.46,
+            height: MediaQuery.of(context).size.height * 0.5,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Center(
               child: Column(

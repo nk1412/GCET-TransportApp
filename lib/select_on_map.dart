@@ -13,7 +13,7 @@ class SelectOnMap extends StatefulWidget {
 
 class SelectOnMapState extends State<SelectOnMap> {
   LatLng _center = const LatLng(0, 0); // Initial center of the map
-  Offset _markerOffset = Offset.zero;
+  final Offset _markerOffset = Offset.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -27,18 +27,18 @@ class SelectOnMapState extends State<SelectOnMap> {
                 _center = position.target;
               });
             },
-            initialCameraPosition: CameraPosition(target: _center, zoom: 15.0),
+            initialCameraPosition: CameraPosition(target: widget.location, zoom: 18.0),
           ),
           Positioned(
             left: MediaQuery.of(context).size.width / 2 - 25 + _markerOffset.dx,
             top: MediaQuery.of(context).size.height / 2 - 50 + _markerOffset.dy,
             child: GestureDetector(
-              onPanUpdate: (details) {
-                setState(() {
-                  _markerOffset += details.delta;
-                  _center = _getLatLngFromOffset(_markerOffset);
-                });
-              },
+              // onPanUpdate: (details) {
+              //   setState(() {
+              //     _markerOffset += details.delta;
+              //     _center = _getLatLngFromOffset(_markerOffset);
+              //   });
+              // },
               child: Container(
                 width: 50,
                 height: 50,
@@ -55,21 +55,25 @@ class SelectOnMapState extends State<SelectOnMap> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print('Selected location: $_center');
+          // Navigator.of(context).pushReplacement(
+          //   MaterialPageRoute(builder: (context) =>  StopFind(description: '', userLocation: _center,),),
+          // );
+          Navigator.of(context).pop(_center); // Pop selected location back to previous screen
         },
         child: const Icon(Icons.check),
       ),
     );
   }
 
-  LatLng _getLatLngFromOffset(Offset offset) {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final topLeft = renderBox.localToGlobal(Offset.zero);
-    final x = (offset.dx + 25 - topLeft.dx) / renderBox.size.width;
-    final y = (offset.dy + 50 - topLeft.dy) / renderBox.size.height;
-    final latLng = LatLng(
-      _center.latitude + (0.5 - y) * 2,
-      _center.longitude + (x - 0.5) * 2,
-    );
-    return latLng;
-  }
+  // LatLng _getLatLngFromOffset(Offset offset) {
+  //   final RenderBox renderBox = context.findRenderObject() as RenderBox;
+  //   final topLeft = renderBox.localToGlobal(Offset.zero);
+  //   final x = (offset.dx + 25 - topLeft.dx) / renderBox.size.width;
+  //   final y = (offset.dy + 50 - topLeft.dy) / renderBox.size.height;
+  //   final latLng = LatLng(
+  //     _center.latitude + (0.5 - y) * 2,
+  //     _center.longitude + (x - 0.5) * 2,
+  //   );
+  //   return latLng;
+  // }
 }

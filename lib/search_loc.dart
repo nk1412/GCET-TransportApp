@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:convert';
 
@@ -12,6 +12,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 import 'stop_find.dart';
+import 'select_on_map.dart';
 
 
 class SearchLoc extends StatefulWidget {
@@ -39,11 +40,43 @@ class SearchLocState extends State<SearchLoc> {
     });
   }
 
-  Future<void> currentPosition() async {
+  Future<void> currentPosition() async { 
     var position = await Geolocator.getCurrentPosition();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => StopFind(userLocation: LatLng(position.latitude,position.longitude),description: "Your Current Location")),
     );
+  }
+
+  Future<void> selectFromMap() async {
+    var value = await Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => SelectOnMap(location: LatLng(widget.location.latitude, widget.location.longitude)),
+    ));
+
+    print(value);
+    String desc = await getDescription(value);
+    _controller.text = desc;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => StopFind(userLocation: LatLng(value.latitude,value.longitude),description: desc)),
+    );
+  }
+
+  Future<String> getDescription(value) async {
+    var latitude = value.latitude;
+    var longitude = value.longitude;
+    const apiKey = 'AIzaSyDk1QAh0VBQFdkIoCBNXdUu_HaSigidsGE'; // Replace with your API key
+    final url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      if (json['status'] == 'OK' && json['results'].isNotEmpty) {
+        return json['results'][0]['formatted_address'];
+      } else {
+        return 'No location description found';
+      }
+    } else {
+      throw Exception('Failed to load location description');
+    }
   }
 
   void _onChange(){
@@ -86,9 +119,9 @@ class SearchLocState extends State<SearchLoc> {
               children: [ 
                 Row(
                   children: [
-                    const SizedBox(width: 8),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.015),
                     const Icon(
-                      Icons.location_on, // Use any icon you want
+                      Icons.my_location_sharp, // Use any icon you want
                       color: Colors.black, // Set the color of the icon
                     ),
                     
@@ -96,11 +129,37 @@ class SearchLocState extends State<SearchLoc> {
                       alignment: Alignment.centerLeft,
                       child: TextButton(
                         style: ButtonStyle(
+                          // side: MaterialStateProperty.all(BorderSide(color: Colors.black)),
                           padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(10.0)),
                         ),
-                        child: const Text("Your Current Location",style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w400),),
+                        child: const Text("Your Location",style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w400),),
                         onPressed: () {
                           currentPosition();
+                        },
+                      ),
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.018),
+                    const SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: Divider(),// Specify the background color here
+                    ),
+                     SizedBox(width: MediaQuery.of(context).size.width * 0.022),
+                    const Icon(
+                      Icons.location_pin, // Use any icon you want
+                      color: Colors.black, // Set the color of the icon
+                    ),
+                    
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        style: ButtonStyle(
+                          // side: MaterialStateProperty.all(BorderSide(color: Colors.black)),
+                          padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(10.0)),
+                        ),
+                        child: const Text("Select On Map",style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w400),),
+                        onPressed: () {
+                          selectFromMap();
                         },
                       ),
                     ),

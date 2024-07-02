@@ -180,7 +180,14 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
       home: Scaffold(
         extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text("Bus Location"),
+        title: const Text("Bus Location",
+          style: TextStyle(
+            fontSize: 30,
+            fontFamily: 'Gagalin',
+            // fontWeight: FontWeight.bold, 
+            // color: Colors.blue,
+          ),
+        ),
         backgroundColor: Colors.transparent, // Make app bar background transparent
           elevation: 0,
           leading: Builder(
@@ -258,6 +265,17 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
                   );
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.location_on),
+                title: const Text('Add Your Stop'),
+                onTap: () {
+                  // Handle drawer item tap for Profile
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StopFind(userLocation: locationput,description: "Your current location",)),
+                  );
+                },
+              ),
               const Divider(), // Add a divider between menu items
               ListTile(
                 leading: const Icon(Icons.exit_to_app),
@@ -275,7 +293,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
             GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: _currentPosition,
-                zoom: 15.0,
+                zoom: 16.0,
               ),
               markers: _markers,
               //circles: _circles,

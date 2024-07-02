@@ -55,6 +55,7 @@ dependencies:
   uuid: ^4.4.0
   geocoding: ^3.0.0
   js: ^0.6.7
+  firebase_messaging: ^14.9.4
   
 
 dev_dependencies:
@@ -95,7 +96,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
+  fonts:
+    - family: Gagalin
+      fonts:
+        - asset: fonts/Gagalin.ttf
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
